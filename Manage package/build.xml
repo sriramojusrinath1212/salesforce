@@ -1,0 +1,39 @@
+<project name="Sample usage of Salesforce Ant tasks" default="test" basedir="." xmlns:sf="antlib:com.salesforce">
+
+    <property file="build.properties"/>
+    <property environment="env"/>
+<setproxy proxyhost="10.6.13.87" proxyport="8080" />
+    <!-- Setting default value for username, password and session id properties to empty string 
+         so unset values are treated as empty. Without this, ant expressions such as ${sf.username}
+         will be treated literally.
+    -->
+    <condition property="sf.username" value=""> <not> <isset property="sf.username"/> </not> </condition>
+    <condition property="sf.password" value=""> <not> <isset property="sf.password"/> </not> </condition>
+    <condition property="sf.sessionId" value=""> <not> <isset property="sf.sessionId"/> </not> </condition>
+
+    <taskdef resource="com/salesforce/antlib.xml" uri="antlib:com.salesforce">
+        <classpath>
+            <pathelement location="../ant-salesforce.jar" />        	
+        </classpath>
+    </taskdef>
+	
+<target name="retrieve">
+      <mkdir dir="Unpackaged"/>
+      <!-- Retrieve the contents into another directory -->
+      <sf:retrieve username="${sf.username}" password="${sf.password}" sessionId="${sf.sessionId}" serverurl="${sf.serverurl}" maxPoll="${sf.maxPoll}" retrieveTarget="Unpackaged" unpackaged="package.xml"/>
+    </target>
+
+    <!-- Deploy the unpackaged set of metadata retrieved with retrieveUnpackaged and run tests in this organization's namespace only-->
+
+
+    <target name="deploy">
+      <sf:deploy username="${sf.username}" password="${sf.password}" checkOnly="false" sessionId="${sf.sessionId}" serverurl="${sf.serverurl}" maxPoll="${sf.maxPoll}" deployRoot="Unpackaged" runAllTests="true" logType="Debugonly" rollbackOnError="true"/>
+    </target>
+
+
+	<!-- Delete the unpackaged set of metadata -->
+     <target name="undeploy" > 
+	 <sf:deploy username="${sf.username}" password="${sf.password}" checkOnly="false" logType="Detail" serverurl="${sf.serverurl}" maxPoll="${sf.maxPoll}" deployroot="src"/>
+    
+    </target>
+</project>
